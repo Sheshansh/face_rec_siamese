@@ -2,7 +2,8 @@ import os
 import random
 import pickle as pkl
 
-ORL_DIR = '/home/sheshansh/project/orl_faces/'
+# ORL_DIR = '/home/sheshansh/project/orl_faces/'
+ORL_DIR = '/Users/udayanjoshi/Desktop/Abhyas/Sem5/Digital_Image_Processing/Assignment4/att_faces/'
 subjects = [dI for dI in os.listdir(ORL_DIR) if os.path.isdir(os.path.join(ORL_DIR,dI))]
 
 def pkl_dump(subject_list, mode):
