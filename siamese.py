@@ -8,7 +8,7 @@ import random
 from PIL import Image
 
 BATCH_LEN = 10
-NUM_STEPS = 100
+NUM_STEPS = 10
 PRINT_STEP = 1
 LEARNING_RATE = 0.001
 train_pkl = 'orl_train.pkl'
@@ -30,7 +30,7 @@ def get_im_data(path):
 	return torchvision.transforms.ToTensor()(pil_obj)
 
 def gen_batch(dict_files, len_batch):
-	dict_keys = dict_files.keys()
+	dict_keys = list(dict_files.keys())
 	pos_batch, neg_batch = [], []
 	for i in range(len_batch):
 		key = random.choice(dict_keys)
