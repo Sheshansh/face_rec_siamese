@@ -9,11 +9,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
-BATCH_LEN = 32
+BATCH_LEN = 100
 NUM_STEPS = 100
 PRINT_STEP = 1
 LEARNING_RATE = 0.01
-ALPHA = 1.0
+ALPHA = 0.5
 
 train_pkl = 'orl_train.pkl'
 val_pkl = 'orl_val.pkl'
@@ -45,7 +45,7 @@ def gen_TripletBatch(dict_files, len_batch):
         anchor[i] = get_im_data(random.choice(dict_files[key1]))
         posis[i] = get_im_data(random.choice(dict_files[key1]))
         negis[i] =get_im_data(random.choice(dict_files[key2]))
-    return anchor, posis, negis
+    return anchor.cuda(), posis.cuda(), negis.cuda()
 
 ###### distFunc ######
 def distFunc(a ,b): # 1st dimension is num of samples
@@ -59,7 +59,7 @@ def distFunc(a ,b): # 1st dimension is num of samples
 class SiameseNet(nn.Module):  
     def __init__(self):
         super(SiameseNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, 5)
+        self.conv1 = nn.Conv2d(1, 32, 5, )
         self.conv2 = nn.Conv2d(32, 16, 5)
         self.conv3 = nn.Conv2d(16, 8, 5)
         self.fc1 = nn.Linear(640, 16)
@@ -156,8 +156,8 @@ def findThreshold(model, eval_dict, eval_size = 100):   # Approximates a optimal
     return thres
 
 def Calc_accuracy(model, test_dict, threshold, test_size = 100, steps = 10):
-    pos_count = 0
-    neg_count = 0
+    pos_count = 0.0
+    neg_count = 0.0
     for step in range(steps):
         anchor,posis,negis = gen_TripletBatch(test_dict, test_size)
         pos_dists = model(anchor, posis).detach().numpy()
@@ -168,14 +168,16 @@ def Calc_accuracy(model, test_dict, threshold, test_size = 100, steps = 10):
     print('accuracy pos/neg '+str(pos_count/(test_size*steps))+'\t'+str(neg_count/(test_size*steps)))
     # return pos_count/(test_size*steps), neg_count/(test_size*steps)
 
-model = SiameseNet()
-# lossCurve = []
-# train(model, train_data)
-# torch.save(model, 'best_model')
+model = SiameseNet().cuda()
+lossCurve = []
+train(model, train_data)
+torch.save(model, 'best_model')
 
-# plt.clf()
-# plt.plot(np.linspace(1, len(lossCurve), len(lossCurve)), lossCurve)
-# plt.savefig('loss_vs_step.svg')
+model = torch.load('best_model')
+
+plt.clf()
+plt.plot(np.linspace(1, len(lossCurve), len(lossCurve)), lossCurve)
+plt.savefig('loss_vs_step.svg')
 
 print(findThreshold(model, val_data))
 print(findThreshold(model, val_data))
