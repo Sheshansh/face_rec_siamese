@@ -2,8 +2,7 @@ import os
 import random
 import pickle as pkl
 
-# ORL_DIR = '/home/sheshansh/project/orl_faces/'
-ORL_DIR = '/home/user/Dropbox/AI/att_faces/'
+ORL_DIR = '/mnt/blossom/more/sheshansh/orl_faces/'
 subjects = [dI for dI in os.listdir(ORL_DIR) if os.path.isdir(os.path.join(ORL_DIR,dI))]
 
 def pkl_dump(subject_list, mode):
@@ -20,8 +19,9 @@ def pkl_dump(subject_list, mode):
 num_subjects = len(subjects)
 print('num_subjects = '+ str(num_subjects))
 train_subjects = random.sample(subjects, int(0.8*num_subjects))
-val_subjects = random.sample(set(subjects)-set(train_subjects), int(0.1*num_subjects))
-test_subjects = list(set(subjects)-set(train_subjects)-set(val_subjects))
+test_subjects = random.sample(set(subjects)-set(train_subjects), int(0.1*num_subjects))
+val_subjects = list(set(subjects)-set(train_subjects)-set(test_subjects))
+print('val_subjects = {} test_subjects = {}'.format(len(val_subjects), len(test_subjects)))
 
 pkl_dump(train_subjects, 'train')
 pkl_dump(val_subjects, 'val')
