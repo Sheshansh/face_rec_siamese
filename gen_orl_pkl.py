@@ -1,8 +1,14 @@
 import os
 import random
 import pickle as pkl
+import sys
 
-ORL_DIR = '/mnt/blossom/more/sheshansh/orl_faces/'
+if len(sys.argv) != 2:
+	print("Usage python gen_orl_pkl.py <path_to_ORL_database>")
+	exit(0)
+
+ORL_DIR = sys.argv[1]
+
 subjects = [dI for dI in os.listdir(ORL_DIR) if os.path.isdir(os.path.join(ORL_DIR,dI))]
 
 def pkl_dump(subject_list, mode):

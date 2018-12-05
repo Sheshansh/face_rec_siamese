@@ -141,7 +141,6 @@ def train(model, train_dict, steps = NUM_STEPS, print_step = PRINT_STEP, lr = LE
         neg_dists = model(anchor, negis)
 
         loss = (F.relu(pos_dists - neg_dists + alpha)).mean()
-        # loss = (torch.log(pos_dists - neg_dists + 5.0)).mean()
 
         loss.backward()
         optimizer.step()
@@ -156,7 +155,7 @@ def train(model, train_dict, steps = NUM_STEPS, print_step = PRINT_STEP, lr = LE
             valAcc = Calc_accuracy(model, val_data, classification_model, steps = 10)
             if valAcc > best_val_accuracy:
                 best_val_accuracy = valAcc
-                torch.save(model, 'best_model_valbased')
+                torch.save(model, 'best_model_valbased.pt')
             trainAccCurve.append(trainAcc)
             valAccCurve.append(valAcc)
             print("TrainAcc {} valAcc {}".format(trainAcc, valAcc))
@@ -167,18 +166,10 @@ def train(model, train_dict, steps = NUM_STEPS, print_step = PRINT_STEP, lr = LE
 
 
 def train_logistic(model,train_dict, batch_size = 100, steps = 100):
-    # X = np.zeros((2*batch_size*steps,1))
-    # Y = np.zeros((2*batch_size*steps))
     X = []
     Y = []
     for step in range(steps):
         anchor,posis,negis = gen_TripletBatch(train_dict, batch_size)
-        # pos_dists = model.forward(anchor, posis).cpu().detach().numpy()
-        # neg_dists = model(anchor, negis).detach().numpy()
-        # X[step*2*batch_size:step*2*batch_size+batch_size,0] = pos_dists
-        # X[step*2*batch_size+batch_size:step*2*batch_size+2*batch_size,0] = neg_dists
-        # Y[step*2*batch_size:step*2*batch_size+batch_size] = 1
-        # Y[step*2*batch_size+batch_size:step*2*batch_size+2*batch_size] = 0
         anchor_rep = model.forward_once(anchor).cpu().detach().numpy()
         posis_rep = model.forward_once(posis).cpu().detach().numpy()
         negis_rep = model.forward_once(negis).cpu().detach().numpy()
@@ -194,18 +185,10 @@ def train_logistic(model,train_dict, batch_size = 100, steps = 100):
 
 
 def Calc_accuracy(model, test_dict, classification_model, batch_size = 100, steps = 10):
-    # X = np.zeros((2*batch_size*steps,1))
-    # Y = np.zeros((2*batch_size*steps))
     X = []
     Y = []
     for step in range(steps):
         anchor,posis,negis = gen_TripletBatch(test_dict, batch_size)
-        # pos_dists = model(anchor, posis).detach().numpy()
-        # neg_dists = model(anchor, negis).detach().numpy()
-        # X[step*2*batch_size:step*2*batch_size+batch_size,0] = pos_dists
-        # X[step*2*batch_size+batch_size:step*2*batch_size+2*batch_size,0] = neg_dists
-        # Y[step*2*batch_size:step*2*batch_size+batch_size] = 1
-        # Y[step*2*batch_size+batch_size:step*2*batch_size+2*batch_size] = 0
         anchor_rep = model.forward_once(anchor).cpu().detach().numpy()
         posis_rep = model.forward_once(posis).cpu().detach().numpy()
         negis_rep = model.forward_once(negis).cpu().detach().numpy()
@@ -213,13 +196,10 @@ def Calc_accuracy(model, test_dict, classification_model, batch_size = 100, step
         X.append(np.abs((anchor_rep - negis_rep))**2)
         Y.append([1]*batch_size)
         Y.append([-1]*batch_size)
-      
     X = np.array(X).reshape([-1,X[0].shape[1]])
     Y = np.array(Y).reshape([-1])
+
     return (classification_model.score(X, Y))
-    
-    # print('accuracy pos/neg '+str(pos_count/(test_size*steps))+'\t'+str(neg_count/(test_size*steps)))
-    # return pos_count/(test_size*steps), neg_count/(test_size*steps)
 
 model = SiameseNet().cuda()
 
@@ -231,9 +211,9 @@ plt.clf()
 plt.plot(np.linspace(1, len(trainAccCurve), len(trainAccCurve)), trainAccCurve)
 plt.plot(np.linspace(1, len(valAccCurve), len(valAccCurve)), valAccCurve)
 plt.savefig('accuracies.svg')
-torch.save(model, 'best_model')
+torch.save(model, 'recent_model.pt')
 
-model = torch.load('best_model')
+model = torch.load('recent_model.pt')
 classification_model = train_logistic(model, train_data)
 augment = False
 model.eval()
@@ -241,7 +221,7 @@ print(Calc_accuracy(model, train_data, classification_model))
 print(Calc_accuracy(model, val_data, classification_model))
 print(Calc_accuracy(model, test_data, classification_model))
 
-model = torch.load('best_model_valbased')
+model = torch.load('best_model_valbased.pt')
 classification_model = train_logistic(model, train_data)
 augment = False
 model.eval()
